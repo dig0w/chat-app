@@ -1,0 +1,514 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+
+    background-color: #fafafc;
+    font-family: 'Poppins', sans-serif;
+    transition: all .3s ease-in-out;
+}
+a, li {
+    text-decoration: none;
+}
+
+.none {
+    display: none;
+}
+.oflow0 {
+    overflow: hidden;
+}
+.bodyIndex {
+    position: relative;
+    min-height: 100vh;
+}
+.hidden {
+    visibility: hidden;
+    opacity: 0;
+    height: 0 !important;
+}
+
+
+header {
+    padding: 1.2rem 3rem;
+    background-color: #e5e5f0;
+    box-shadow: 0px 2px 5px 0px #e5e5f0;
+}
+header nav {
+    max-width: 1305px;
+    display: flex;
+    justify-content: space-between;
+    margin: auto;
+    background-color: #e5e5f0;
+}
+header nav .logo {
+    background-color: #e5e5f0;
+    color: #000000;
+    font-size: 24px;
+    font-weight: bolder;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+header nav button {
+    padding: .5rem 2rem;
+    border: none;
+    border-radius: .4rem;
+    background-color: #5353ed;
+    color: #fafafc;
+    cursor: pointer;
+}
+header nav button:hover {
+    box-shadow: 0px 0px 10px 0px #5353ed;
+}
+
+/* Index */
+.mainIndex {
+    max-width: 1345px;
+    height: 100vh;
+    margin: 7rem auto 0;
+}
+.mainIndex .hero {
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+}
+.mainIndex .hero .text h1 {
+    font-weight: 600;
+}
+.mainIndex .hero .text button {
+    margin: .7rem 0;
+    padding: .5rem 2rem;
+    border: none;
+    border-radius: .4rem;
+    background-color: #5353ed;
+    color: #fafafc;
+    cursor: pointer;
+}
+.mainIndex .hero .text button:hover {
+    box-shadow: 0px 0px 10px 0px #5353ed;
+}
+.mainIndex .hero .img {
+    position: relative;
+    top: 0;
+    left: 0;
+}
+.mainIndex .hero .img .blob {
+    position: relative;
+    top: 0;
+    left: 15px;
+    opacity: .8;
+}
+.mainIndex .hero .img .svg {
+    width: 93%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: transparent;
+}
+
+/* Chat */
+.mainChat {
+    max-width: 1345px;
+    height: 100vh;
+    display: flex;
+    margin: 7px auto 0;
+}
+.mainChat .menu {
+    width: 30%;
+    margin-top: -7px;
+    padding: 2rem;
+    background-color: #e5e5f0;
+    box-shadow: 0px 7px 5px 0px #e5e5f0;
+}
+.mainChat .menu .perinfo {
+    display: flex;
+    align-items: center;
+    padding-bottom: 1.5rem;
+    position: relative;
+    border-bottom: 1px solid #56568f;
+    background: transparent;
+}
+.mainChat .menu .perinfo .avatar {
+    width: 112px;
+    margin-right: 1rem;
+    margin-left: .5rem;
+    border-radius: 50%;
+    background: transparent;
+}
+.mainChat .menu .perinfo .text {
+    background: transparent;
+}
+.mainChat .menu .perinfo .text h2 {
+    background: transparent;
+    font-size: 18px;
+    font-weight: 600;
+}
+.mainChat .menu .perinfo .text p {
+    background: transparent;
+    font-size: 15px;
+}
+.mainChat .menu .perinfo .text h2:focus, main .menu .perinfo .text p {
+    outline: none;
+}
+.mainChat .menu .perinfo button {
+    position: absolute;
+    top: 0;
+    right: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+}
+.mainChat .menu .perinfo button svg {
+    background: transparent;
+    fill: #808080;
+}
+.mainChat .menu .perinfo button:hover svg {
+    fill: #5353ed;
+}
+.mainChat .menu .options {
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    padding: 1.5rem 0 1.125rem;
+    border-bottom: 1px solid #56568f;
+    background: transparent;
+}
+.mainChat .menu .options button {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+}
+.mainChat .menu .options button svg {
+    background: transparent;
+    fill: #808080;
+}
+.mainChat .menu .options button:hover svg {
+    fill: #5353ed;
+}
+.mainChat .menu .chats {
+    display: flex;
+    align-items: center;
+    padding: 1rem 0;
+    border-bottom: 1px solid #56568f;
+    background: transparent;
+    cursor: pointer;
+}
+.mainChat .menu .chats:hover .avatar, main .menu .chats.focus .avatar {
+    box-shadow: 0px 0px 5px 0px #5353ed;
+}
+.mainChat .menu .chats .avatar {
+    width: 50px;
+    border-radius: 50%;
+    margin-right: 1rem;
+    margin-left: .5rem;
+    background: transparent;
+}
+.mainChat .menu .chats .text {
+    background: transparent;
+}
+.mainChat .menu .chats .text h3 {
+    background: transparent;
+    color: #000000;
+    font-size: 16px;
+    font-weight: 500;
+}
+.mainChat .menu .chats .text p {
+    color: #000000;
+    font-size: 13px;
+}
+.mainChat .menu p {
+    background: transparent;
+}
+
+.mainChat .chat {
+    width: 70%;
+    position: relative;
+    margin: 2rem;
+}
+.mainChat .chat .chat-msg {
+    display: flex;
+    flex-direction: column;
+    height: 80%;
+    padding: 0 1rem;
+    overflow: auto;
+    overflow-x: hidden;
+}
+.mainChat .chat .chat-msg > :first-child {
+    margin-top: auto !important;
+}
+.mainChat .chat .chat-msg .msg {
+    margin: .375rem 0;
+    width: 100%;
+    display: grid;
+    justify-items: start;
+}
+.mainChat .chat .chat-msg .msg span {
+    background: transparent;
+    font-size: 15px;
+    word-break: break-word;
+}
+.mainChat .chat .chat-msg .msg .text {
+    padding: .5rem 1rem;
+    max-width: 447.24px;
+    border-radius: .4rem;
+    background-color: #e5e5f0;
+}
+.mainChat .chat .chat-msg .msg .time {
+    margin: .25rem 0 0;
+    height: auto;
+    font-size: 11px;
+    color: #9e9e9e;
+    white-space: nowrap;
+}
+.mainChat .chat .chat-msg .msg-me {
+    align-self: end;
+    justify-items: end;
+}
+.mainChat .chat .chat-msg .msg-me .text {
+    background-color: #8282f2;
+}
+.mainChat .chat .chat-msg .msg-me span {
+    color: #fafafc;
+}
+.mainChat .chat .chat-msg .day {
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    margin: .4rem auto;
+    color: #9e9e9e;
+    font-size: 13px;
+    text-align: center;
+    white-space: nowrap;
+}
+.mainChat .chat .chat-msg .shadowTop, .mainChat .chat .chat-msg .shadowBot {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    width: 100%;
+    min-height: 20px;
+    box-shadow: 0 10px 10px -10px #fafafc inset;
+    background: transparent;
+    pointer-events: none;
+}
+.mainChat .chat .chat-msg .shadowBot {
+    bottom: 0;
+    box-shadow: 0 -10px 10px -10px #fafafc inset;
+}
+.mainChat .chat .toolbar {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    position: absolute;
+    bottom: 120px;
+}
+.mainChat .chat .toolbar input {
+    padding: .5rem .7rem;
+    width: 100%;
+    border: 1px solid #56568f;
+    border-radius: .4rem;
+    background: transparent;
+}
+.mainChat .chat .toolbar input:hover {
+    border: 1px solid #5353ed;
+}
+.mainChat .chat .toolbar input:focus {
+    outline: none;
+    border: 1px solid #5353ed;
+    box-shadow: 0px 0px 5px 0px #5353ed;
+}
+.mainChat .chat .toolbar button {
+    margin: 0 .25rem 0 .5rem;
+    width: 38px;
+    height: 38px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid #56568f;
+    border-radius: .4rem;
+    background: transparent;
+    cursor: pointer;
+}
+.mainChat .chat .toolbar button:hover {
+    border: 1px solid #5353ed;
+}
+.mainChat .chat .toolbar button:focus {
+    outline: none;
+    border: 1px solid #5353ed;
+    box-shadow: 0px 0px 5px 0px #5353ed;
+}
+.mainChat .chat .toolbar button svg {
+    fill: #808080;
+}
+.mainChat .chat .toolbar button:hover svg {
+    fill: #5353ed;
+}
+.mainChat .chat .toolbar button:focus svg {
+    fill: #5353ed;
+}
+
+
+footer {
+    padding: 2rem 3rem;
+    width: 100%;
+    background-color: #0f0f1a;
+}
+footer section {
+    max-width: 1305px;
+    margin: auto;
+    background-color: #0f0f1a;
+}
+footer section .links {
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    background-color: #0f0f1a;
+}
+footer section .links a {
+    color: #fafafc;
+    background-color: #0f0f1a;
+}
+footer section .links a:hover {
+    color: #5353ed;
+}
+footer section span {
+    float: right;
+    background-color: #0f0f1a;
+    color: #56568f;
+    font-size: 14px;
+}
+
+/* PopUp Menu */
+.popup {
+    position: fixed;
+    z-index: 3;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    padding-top: 12%;
+    overflow: hidden;
+    background-color: rgba(0,0,0,.4);
+}
+.popup section {
+    margin: auto;
+    padding: 1.8rem 2rem 1.8rem 0;
+    max-width: 1142px;
+    border: 1px solid grey;
+    border-radius: .4rem;
+    background-color: #fafafc;
+    background-image: url(http://localhost:5000/img/blob-scene.svg);
+    background-size: cover;
+    background-repeat: no-repeat;
+    box-shadow: 0px 0px 5px 0px rgba(0,0,0,.5);
+}
+.popup section .close {
+    background: transparent;
+    float: right;
+    color: grey;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+.popup section .close:hover {
+    color: #ed5353;
+}
+.popup section .form {
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    margin: 2rem 0;
+    background: transparent;
+}
+.popup section .form .signin, .popup section .form .register, .popup section .form .friends, .popup section .form p {
+    background: transparent;
+}
+.popup section .form .friends {
+    width: 60%;
+}
+.popup section .form hr {
+    height: 20rem;
+    background-color: #56568f;
+}
+.popup section .form h3 {
+    margin-bottom: .7rem;
+    background: transparent;
+    font-weight: 600;
+}
+.popup section .form label {
+    font-size: 14px;
+    background: transparent;
+}
+.popup section .form input[type="text"], .popup section .form input[type="password"] {
+    margin-bottom: .3rem;
+    padding: .5rem .7rem;
+    width: 100%;
+    border: 1px solid #56568f;
+    border-radius: .4rem;
+    background: transparent;
+}
+.popup section .form input[type="text"]:hover, .popup section .form input[type="password"]:hover {
+    border: 1px solid #5353ed;
+}
+.popup section .form input[type="text"]:focus, .popup section .form input[type="password"]:focus {
+    outline: none;
+    border: 1px solid #5353ed;
+    box-shadow: 0px 0px 5px 0px #5353ed;
+}
+.popup section .form .showpass {
+    position: relative;
+    top: 5px;
+    margin-left: -30px;
+    cursor: pointer;
+    background: transparent;
+}
+.popup section .form .showpass svg {
+    fill: #808080;
+}
+.popup section .form .showpass:hover svg {
+    fill: #5353ed;
+}
+.popup section .form .status {
+    color: #ed5353;
+    font-size: 13px;
+}
+.popup section .form .results {
+    max-height: 20%;
+}
+.popup section .form .results div {
+    margin-bottom: .3rem;
+    padding: .5rem .7rem;
+    width: 100%;
+    border: 1px solid #56568f;
+    border-radius: .4rem;
+    background: transparent;
+    font-size: 14px;
+    cursor: pointer;
+}
+.popup section .form .results div:first-child {
+    margin-top: .7rem;
+}
+.popup section .form .results div:hover {
+    border: 1px solid #5353ed;
+}
+.popup section .form .results div.radioChecked {
+    outline: none;
+    border: 1px solid #5353ed;
+    box-shadow: 0px 0px 5px 0px #5353ed;
+}
+.popup section .form button {
+    margin: .7rem 0;
+    padding: .5rem 2rem;
+    border: none;
+    border-radius: .4rem;
+    background-color: #5353ed;
+    color: #fafafc;
+    cursor: pointer;
+}
+.popup section .form button:hover {
+    box-shadow: 0px 0px 10px 0px #5353ed;
+}
+
+#send {
+    margin-left: 3px;
+}
