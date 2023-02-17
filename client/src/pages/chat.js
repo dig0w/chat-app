@@ -22,12 +22,17 @@ function App() {
 
     const [message, setMessage] = useState('');
 
-    const [searchFriend, setSearchFriend] = useState('');
+    const [chatName, setChatName] = useState('');
+    const [chatMembers, setChatMembers] = useState([]);
+    const [searchUsers, setSearchUsers] = useState('');
 
     const [isPopUpActive, setIsPopUpActive] = useState(false);
 
-    const [isRadioActive, setIsRadioActive] = useState('');
+    const [isRadioActive, setIsRadioActive] = useState(null);
 
+    const [editMsgI, setEditMsgI] = useState(null);
+
+    const [editMsgTS, seteditMsgTS] = useState(null);
 
     // Socket
     useEffect(() => {
@@ -40,6 +45,7 @@ function App() {
         socket.emit('is-signin');
 
         socket.on('issignin', (response, tempuser) => {
+            console.log(tempuser);
             if (!response) {
                 return navigate('/');
             } else {
@@ -49,6 +55,7 @@ function App() {
 
         socket.on('updateuser', () => {
             socket.emit('is-signin');
+            console.log('update');
         });
 
         // Joinned a Chat
@@ -57,8 +64,9 @@ function App() {
         };
 
         socket.on('room-messages', response => {
-            console.log(response);
             setRoomMessages(response);
+
+            scrollToBot();
         });
 
         socket.on('recive-users', response => {
@@ -77,25 +85,16 @@ function App() {
     };
 
     // Edit Profile
-    // const editUsername = (that) => {
-    //     socket.emit('edit-profile', that.target.innerHTML);
+    // const editUsername = (e) => {
+    //     socket.emit('edit-profile', e.target.innerHTML);
     // };
-    // const editBio = (that) => {
-    //     socket.emit('edit-profile', false, that.target.innerHTML);
+    // const editBio = (e) => {
+    //     socket.emit('edit-profile', false, e.target.innerHTML);
     // };
-    // const editAvatar = (that) => {
-    //     socket.emit('edit-profile', false, false, that.target.innerHTML);
+    // const editAvatar = (e) => {
+    //     socket.emit('edit-profile', false, false, e.target.innerHTML);
     // };
 
-    // Add Friend
-    const getUsers = () => {
-        socket.emit('get-users');
-    };
-    const addFriend = () => {
-        socket.emit('add-friend', user._id, users.find(u => u._id === isRadioActive)._id);
-
-        popUpAddFriend();
-    };
 
     // Sended a Message
     const handleSubmit = (e) => {
@@ -109,20 +108,124 @@ function App() {
             time: new Date()
         });
 
-        socket.emit('last-message', user._id, new URLSearchParams(window.location.search).get('id'), message);
-        const userfriend = user.friends.findIndex(f => f.chatId.toString() === new URLSearchParams(window.location.search).get('id'));
-        user.friends[userfriend].lastmsg = message;
-
         scrollToBot();
         return setMessage('');
     };
 
-    // Edit Message
+    // Context Menu
+    const openContextMenu = async (e) => {
+        openContextMenuFn(e.target.parentNode, e);
+    };
     window.addEventListener('contextmenu', (e) => {
-        if (e.target.className === 'text' && e.target.nodeName === 'SPAN') {
+        if ((e.target.className === 'msg' || e.target.className === 'msg msg-me') && e.target.nodeName === 'DIV' && e.target.id) {
             e.preventDefault();
+            openContextMenuFn(e.target.children[0].children[0], e);
+        } else if (e.target.className === 'text' && e.target.nodeName === 'SPAN') {
+            e.preventDefault();
+            openContextMenuFn(e.target.children[0], e);
+        } else if (e.target.className === 'time' && e.target.nodeName === 'SPAN') {
+            e.preventDefault();
+            openContextMenuFn(e.target.previousSibling.children[0], e);
+        } else if (e.target.nodeName === 'svg' && e.target.parentNode.parentNode.className === 'text' && e.target.parentNode.parentNode.nodeName === 'SPAN') {
+            e.preventDefault();
+            openContextMenuFn(e.target.parentNode.parentNode.children[0], e);
         };
     });
+
+    function openContextMenuFn(btn, e) {
+        const contextmenu = document.getElementsByClassName('contextMenu')[0];
+        const rect = contextmenu.parentNode.getBoundingClientRect();
+
+        btn.focus();
+
+        setEditMsgI(btn.parentNode.parentNode.id);
+
+        btn.addEventListener('blur', () => {
+            contextmenu.style.opacity = 0;
+            contextmenu.style.visibility = 'hidden';
+        });
+        contextmenu.parentNode.addEventListener('scroll', () => {
+            contextmenu.style.opacity = 0;
+            contextmenu.style.visibility = 'hidden';
+
+            btn.blur();
+        });
+
+        contextmenu.style.opacity = 1;
+        contextmenu.style.visibility = 'visible';
+
+        if (btn.parentNode.parentNode.className === 'msg msg-me') {
+            contextmenu.querySelector('#delete').style.display = 'flex';
+            contextmenu.querySelector('#edit').style.display = 'flex';
+
+            contextmenu.style.left = e.pageX - rect.left - contextmenu.offsetWidth - 5 + 'px';
+        } else {
+            contextmenu.querySelector('#delete').style.display = 'none';
+            contextmenu.querySelector('#edit').style.display = 'none';
+
+            contextmenu.style.left = e.pageX - rect.left + 5 + 'px';
+        };
+
+        if (e.pageY + contextmenu.offsetHeight + 20 > rect.bottom) {
+            contextmenu.style.top = e.pageY - rect.top - contextmenu.offsetHeight + 'px';
+        } else {
+            contextmenu.style.top = e.pageY - rect.top + 'px';
+        };
+    };
+
+    // React to Message
+    const reactMsg = () => {
+        console.log(editMsgI, 'r');
+        socket.emit('edit-msg', new URLSearchParams(window.location.search).get('id'), editMsgI, 'react', '😂');
+    };
+
+    // Reply to Message
+    const replyMsg = () => {
+        console.log(editMsgI, 'r');
+        socket.emit('edit-msg', new URLSearchParams(window.location.search).get('id'), editMsgI, 'reply');
+    };
+
+    // Forward Message
+    const forwardMsg = () => {
+        console.log(editMsgI, 'f');
+        socket.emit('edit-msg', new URLSearchParams(window.location.search).get('id'), editMsgI, 'forward', 'user to forward');
+    };
+
+    // Edit Message
+    const editMsg = () => {
+        const msg = document.getElementsByClassName('msg')[editMsgI];
+
+        msg.children[0].contentEditable = 'plaintext-only';
+        msg.children[0].focus();
+
+        var shouldHandleKeyDown = true;
+        window.addEventListener('keydown', (ev) => {
+            if (!shouldHandleKeyDown) return;
+            shouldHandleKeyDown = false;
+
+            if (ev.key === 'Enter') {
+                msg.children[0].blur();
+            };
+        });
+        window.addEventListener('keyup', () => {
+            shouldHandleKeyDown = true;
+        });
+
+        msg.children[0].addEventListener('blur', (e) => {
+            console.log(e.timeStamp, editMsgTS);
+
+            if (editMsgTS !== e.timeStamp) {
+                seteditMsgTS(e.timeStamp);
+                msg.children[0].contentEditable = 'false';
+                socket.emit('edit-msg', new URLSearchParams(window.location.search).get('id'), editMsgI, 'edit', e.target.innerText, user._id);
+            };
+        }, { once: true });
+    };
+
+    // Delete Message
+    const deleteMsg = () => {
+        socket.emit('edit-msg', new URLSearchParams(window.location.search).get('id'), editMsgI, 'delete', null, user._id);
+    };
 
     // Scroll to the Bottom
     const scrollToBot = async () => {
@@ -142,41 +245,76 @@ function App() {
     }, []);
 
     // Fake Form
-    const formStuff = (that) => {
-        var shouldHandleKeyDown = true;
-        window.addEventListener('keydown', (e) => {
-            if (!shouldHandleKeyDown) return;
-            shouldHandleKeyDown = false;
+    const formStuff = (e) => {
+        // var shouldHandleKeyDown = true;
+        // window.addEventListener('keydown', (ev) => {
+        //     if (!shouldHandleKeyDown) return;
+        //     shouldHandleKeyDown = false;
 
-            if (e.key === 'Enter') {
-                that.target.nextSibling.nextSibling.nextSibling.click();
-            };
-        });
-        window.addEventListener('keyup', (e) => {
-            shouldHandleKeyDown = true;
-        });
+        //     if (ev.key === 'Enter') {
+        //         e.target.nextSibling.nextSibling.nextSibling.click();
+        //     };
+        // });
+        // window.addEventListener('keyup', () => {
+        //     shouldHandleKeyDown = true;
+        // });
     };
 
     // On key Press Auto Focus Input
-    window.addEventListener('keypress', (e) => {
-        console.log(document.activeElement)
-        document.getElementById('inputMessage').focus();
-    });
+    // window.addEventListener('keypress', () => {
+    //     console.log(editMsgI && document.activeElement !== document.getElementsByClassName('msg')[editMsgI].children[0], editMsgI);
+    //     if(editMsgI && document.activeElement !== document.getElementsByClassName('msg')[editMsgI].children[0]) {
+    //         document.getElementById('inputMessage').focus();
+    //     };
+    // });
 
     // On Click Show Time Under Messages
-    const showTime = (that) => {
-        that.target.nextSibling.classList.toggle('hidden');
+    const showTime = (e) => {
+        try {
+            e.target.nextSibling.classList.toggle('hidden');
+        } catch { return };
+    };
+
+    // Create Chat
+    const getUsers = () => {
+        socket.emit('get-users');
+    };
+    const createChat = () => {
+        socket.emit('create-chat', user._id, chatName, chatMembers);
+
+        popUpCreateChat();
     };
 
     // Pop Up
-    const popUpAddFriend = () => {
+    const popUpCreateChat = () => {
         if (!isPopUpActive) getUsers();
         setIsPopUpActive(!isPopUpActive);
-    };
+    }
 
-    // Radio
-    const radioFunc = (that) => {
-        return setIsRadioActive(that.target.id);
+    // Check
+    const checkFunc = (e) => {
+        console.log(chatMembers.filter(m => {
+            if (m === e.target.id) {
+                return true;
+            };
+            return false;
+        }).length);
+
+        if (chatMembers.filter(m => {
+            if (m === e.target.id) {
+                return true;
+            };
+            return false;
+        }).length === 0) {
+            return setChatMembers([...chatMembers, e.target.id]);
+        } else {
+            return setChatMembers([...chatMembers.filter(m => {
+                if (m !== e.target.id) {
+                    return true;
+                };
+                return false;
+            })]);
+        };
     };
 
     return (
@@ -202,30 +340,22 @@ function App() {
                                 <path d="M15.925 15.675q-.175-.175-.175-.363 0-.187.175-.337L17.875 13h-8.15q-.2 0-.35-.137-.15-.138-.15-.363 0-.225.15-.363.15-.137.35-.137h8.15L15.9 10.025q-.15-.15-.15-.35 0-.2.175-.35.15-.175.35-.175.2 0 .35.175l2.625 2.6q.125.15.175.287.05.138.05.288 0 .15-.05.287-.05.138-.175.288L16.6 15.7q-.15.15-.338.15-.187 0-.337-.175ZM5.8 21q-.675 0-1.138-.462-.462-.463-.462-1.163V5.625q0-.7.462-1.162Q5.125 4 5.8 4h5.925q.225 0 .363.137.137.138.137.363 0 .225-.137.362Q11.95 5 11.725 5H5.8q-.225 0-.412.188-.188.187-.188.437v13.75q0 .25.188.437.187.188.412.188h5.925q.225 0 .363.137.137.138.137.363 0 .225-.137.363-.138.137-.363.137Z" />
                             </svg>
                         </button>
-                    </div>
-
-                    <div className="options">
-                        <button title="Create Group">
-                            <svg height="40" width="40">
-                                <path d="M20.833 18.833q.875-.958 1.209-2.166.333-1.209.333-2.584t-.333-2.562q-.334-1.188-1.209-2.188 2.084-.125 3.542 1.23 1.458 1.354 1.458 3.52 0 2.209-1.458 3.563t-3.542 1.187Zm7.709 12.209q.25-.209.396-.521.145-.313.145-.729v-1.25q0-1.417-.562-2.667-.563-1.25-1.979-2.042 3.25.584 4.916 1.729 1.667 1.146 1.667 2.98v1.25q0 .541-.354.896-.354.354-.854.354Zm4.333-10.334q-.292 0-.5-.208-.208-.208-.208-.5v-2.875h-2.875q-.292 0-.5-.208-.209-.209-.209-.5 0-.292.209-.5.208-.209.5-.209h2.875v-2.875q0-.291.208-.5.208-.208.5-.208.333 0 .521.208.187.209.187.5v2.875h2.875q.334 0 .521.209.188.208.188.5 0 .291-.188.5-.187.208-.521.208h-2.875V20q0 .292-.208.5-.208.208-.5.208Zm-18.458-1.75q-2.084 0-3.479-1.396-1.396-1.395-1.396-3.479 0-2.083 1.396-3.479 1.395-1.396 3.479-1.396 2.083 0 3.479 1.396t1.396 3.479q0 2.084-1.396 3.479-1.396 1.396-3.479 1.396ZM4.042 31.042q-.542 0-.875-.354-.334-.355-.334-.896V28.5q0-1.042.604-1.938.605-.895 1.646-1.395 2.5-1.125 4.771-1.667t4.563-.542q2.333 0 4.583.542t4.75 1.667q1.042.5 1.667 1.395.625.896.625 1.938v1.292q0 .541-.354.896-.355.354-.896.354Zm10.375-13.5q1.458 0 2.458-1 1-1 1-2.459 0-1.458-1-2.458-1-1-2.458-1-1.459 0-2.459 1t-1 2.458q0 1.459 1 2.459t2.459 1ZM4.25 29.625h20.375V28.5q0-.583-.396-1.146-.396-.562-1.146-.937-2.208-1.084-4.312-1.563-2.104-.479-4.354-.479t-4.334.479Q8 25.333 5.75 26.417q-.75.375-1.125.937-.375.563-.375 1.146Zm10.167-15.542Zm0 15.542Z" />
-                            </svg>
-                        </button>
-                        <button title="Add Friend" onClick={popUpAddFriend}>
-                            <svg height="40" width="40">
-                                <path d="M31.25 22.5q-.292 0-.5-.208-.208-.209-.208-.5v-4.417h-4.417q-.292 0-.5-.208-.208-.209-.208-.5 0-.292.208-.5.208-.209.5-.209h4.417v-4.416q0-.292.208-.5.208-.209.5-.209.292 0 .5.209.208.208.208.5v4.416h4.417q.292 0 .5.209.208.208.208.5 0 .291-.208.5-.208.208-.5.208h-4.417v4.417q0 .291-.208.5-.208.208-.5.208Zm-16.667-3.542q-2.083 0-3.479-1.396-1.396-1.395-1.396-3.479 0-2.083 1.396-3.479t3.479-1.396q2.084 0 3.479 1.396 1.396 1.396 1.396 3.479 0 2.084-1.396 3.479-1.395 1.396-3.479 1.396ZM4.125 31.042q-.5 0-.854-.354-.354-.355-.354-.896V28.5q0-1.042.604-1.938.604-.895 1.646-1.395Q7.708 24.042 10 23.5q2.292-.542 4.583-.542 2.292 0 4.584.542 2.291.542 4.791 1.667 1.084.541 1.688 1.416.604.875.604 1.917v1.292q0 .541-.354.896-.354.354-.854.354Zm.208-1.417h20.5V28.5q0-.583-.375-1.146-.375-.562-1.125-.937-2.25-1.084-4.375-1.563-2.125-.479-4.375-.479t-4.375.479q-2.125.479-4.375 1.563-.75.375-1.125.937-.375.563-.375 1.146Zm10.25-12.083q1.459 0 2.459-1t1-2.459q0-1.458-1-2.458-1-1-2.459-1-1.458 0-2.458 1-1 1-1 2.458 0 1.459 1 2.459t2.458 1Zm0-3.459Zm0 10.292Z" />
+                        <button title="Create Chat" onClick={popUpCreateChat} style={{ right: 28 + 'px'}}>
+                            <svg height="24" width="24">
+                                <path d="M3.5 18.8V5.125q0-.675.475-1.15.475-.475 1.15-.475h11.75q.675 0 1.15.475.475.475.475 1.15v4.9Q18.375 10 18.25 10h-.5q-.125 0-.25.025v-4.9q0-.275-.175-.45t-.45-.175H5.125q-.275 0-.45.175t-.175.45V15.5h7.525q-.025.125-.025.25v.5q0 .125.025.25H5.8ZM7.125 8.5h7.75v-1h-7.75Zm0 4h4.75v-1h-4.75Zm10.375 7v-3h-3v-1h3v-3h1v3h3v1h-3v3Zm-13-4v-11 11Z"/>
                             </svg>
                         </button>
                     </div>
 
                     {
-                        (user.friends !== undefined) ?
+                        (user.chats !== undefined) ?
                             (
-                                user.friends.map((friend) => (
-                                    <a href={`chat?id=${friend.chatId}`} rel="no-refresh" className={(friend.chatId === new URLSearchParams(window.location.search).get('id')) ? (`chats focus`) : (`chats`)}>
-                                        <img src={friend.picture} alt="" className="avatar" />
+                                user.chats.map((c) => (
+                                    <a href={`chat?id=${c._id}`} rel="no-refresh" className={(c.chatId === new URLSearchParams(window.location.search).get('id')) ? (`chats focus`) : (`chats`)}>
+                                        <img src="http://localhost:5000/img/avatar.png" alt="" className="avatar" />
                                         <div className="text">
-                                            <h3>{friend.username}</h3>
-                                            <p>{friend.lastmsg.length > 15 ? friend.lastmsg.substring(0, 12) + '...' : friend.lastmsg}</p>
+                                            <h3>{c.name.length > 20 ? c.name.substring(0, 12) + '...' : c.name}</h3>
+                                            <p>{c.lastmsg.length > 20 ? c.lastmsg.substring(0, 12) + '...' : c.lastmsg}</p>
                                         </div>
                                     </a>
                                 ))
@@ -238,8 +368,8 @@ function App() {
                         <div className="shadowTop"></div>
                         <div>
                             {
-                                (user.friends !== undefined && roomMessages.members !== undefined) ?
-                                    (<span className="day">This is the beginning of your conversation with {user.friends.find(f => f._id === roomMessages.members.find(m => m._id !== user._id)._id).username}</span>) :
+                                (user.chats !== undefined && roomMessages.members !== undefined) ?
+                                    (<span className="day">This is the beginning of your chat in {user.chats.find(c => c._id === new URLSearchParams(window.location.search).get('id')).name}</span>) :
                                     (<></>)
                             }
                             {
@@ -266,23 +396,23 @@ function App() {
                                                     )
                                             }
                                             <div className={(msg.from === user._id) ? ('msg msg-me') : ('msg')} id={i}>
-                                                <span className="text" onClick={showTime}>{msg.content}</span>
+                                                <span className="text" onClick={showTime} onInput={(e) => { if (e.target.innerHTML.length <= 438 || e.target.innerText.length === 0) { e.target.innerHTML = '<button onClick={openContextMenu}><svg height="24" width="24"><path d="M12 18.55q-.425 0-.712-.3-.288-.3-.288-.7 0-.425.288-.713.287-.287.712-.287t.713.287q.287.288.287.713 0 .4-.287.7-.288.3-.713.3ZM12 13q-.425 0-.712-.288Q11 12.425 11 12t.288-.713Q11.575 11 12 11t.713.287Q13 11.575 13 12t-.287.712Q12.425 13 12 13Zm0-5.55q-.425 0-.712-.288Q11 6.875 11 6.45q0-.4.288-.7.287-.3.712-.3t.713.3q.287.3.287.7 0 .425-.287.712-.288.288-.713.288Z" /></svg></button> ' } }}>
+                                                    <button onClick={openContextMenu}>
+                                                        <svg height="24" width="24">
+                                                            <path d="M12 18.55q-.425 0-.712-.3-.288-.3-.288-.7 0-.425.288-.713.287-.287.712-.287t.713.287q.287.288.287.713 0 .4-.287.7-.288.3-.713.3ZM12 13q-.425 0-.712-.288Q11 12.425 11 12t.288-.713Q11.575 11 12 11t.713.287Q13 11.575 13 12t-.287.712Q12.425 13 12 13Zm0-5.55q-.425 0-.712-.288Q11 6.875 11 6.45q0-.4.288-.7.287-.3.712-.3t.713.3q.287.3.287.7 0 .425-.287.712-.288.288-.713.288Z" />
+                                                        </svg>
+                                                    </button>
+                                                    {msg.content}
+                                                </span>
                                                 {
                                                     (i + 1 < roomMessages.messages.length &&
                                                         new Date(roomMessages.messages[i + 1].time).toDateString() === new Date(msg.time).toDateString() &&
                                                         new Date(roomMessages.messages[i + 1].time).getHours() === new Date(msg.time).getHours()) &&
                                                         ((msg.from === user._id && roomMessages.messages[i + 1].from === user._id) ||
                                                             (msg.from !== user._id && roomMessages.messages[i + 1].from !== user._id)) ?
-                                                        (<span className="time hidden">{new Date(msg.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>) :
-                                                        (<span className="time">{new Date(msg.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>)
+                                                        (<span className="time hidden">{new Date(msg.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}{(msg.isEdited) ? (' • Edited') : ('')}</span>) :
+                                                        (<span className="time">{new Date(msg.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}{(msg.isEdited) ? (' • Edited') : ('')}</span>)
                                                 }
-                                                <div className="optionsbtn">
-                                                    <button className="optionbtn">
-                                                        <svg height="24" width="24">
-                                                            <path d="M5.3 19h1.075l9.9-9.9L15.2 8.025l-9.9 9.9ZM18.425 8.375l-2.5-2.475 1.225-1.225q.275-.3.7-.3.425 0 .725.3l1.05 1.075q.3.275.3.7 0 .425-.275.7ZM5.125 20q-.35 0-.588-.225Q4.3 19.55 4.3 19.2v-1.375q0-.15.062-.287.063-.138.188-.288L15.2 6.6l2.5 2.5L7.05 19.75q-.125.15-.262.2-.138.05-.313.05Zm10.6-11.45-.525-.525L16.275 9.1Z" />
-                                                        </svg>
-                                                    </button>
-                                                </div>
                                             </div>
                                         </>
                                     ))
@@ -290,6 +420,39 @@ function App() {
                             }
                         </div>
                         <div className="shadowBot"></div>
+
+                        <div className="contextMenu" style={{ visibility: 'hidden', opacity: 0 }}>
+                            <button onClick={reactMsg}>
+                                <svg height="24" width="24">
+                                    <path d="M12 21q-1.875 0-3.512-.712-1.638-.713-2.85-1.926-1.213-1.212-1.926-2.85Q3 13.875 3 12t.712-3.513q.713-1.637 1.926-2.85 1.212-1.212 2.85-1.925Q10.125 3 12 3q1 0 1.938.212.937.213 1.762.588-.025.225-.012.45.012.225.062.45 0 .075.012.15.013.075.063.125-.85-.45-1.812-.713Q13.05 4 12 4 8.675 4 6.338 6.337 4 8.675 4 12t2.338 5.663Q8.675 20 12 20q3.325 0 5.663-2.337Q20 15.325 20 12q0-.85-.175-1.638-.175-.787-.475-1.512.25.175.525.287.275.113.575.163.05 0 .075-.013.025-.012.05-.012.2.65.313 1.325.112.675.112 1.4 0 1.875-.712 3.512-.713 1.638-1.925 2.85-1.213 1.213-2.85 1.926Q13.875 21 12 21Zm3.3-10.375q.475 0 .8-.325.325-.325.325-.8 0-.475-.312-.8-.313-.325-.813-.325-.475 0-.787.325-.313.325-.313.8 0 .475.313.8.312.325.787.325Zm-6.6 0q.475 0 .788-.325.312-.325.312-.8 0-.475-.312-.8-.313-.325-.788-.325-.475 0-.8.325-.325.325-.325.8 0 .475.313.8.312.325.812.325Zm3.3 6.25q1.325 0 2.538-.712Q15.75 15.45 16.45 14h-8.9q.7 1.45 1.913 2.163 1.212.712 2.537.712ZM12 12Zm8.5-7.5H19q-.225 0-.362-.15Q18.5 4.2 18.5 4q0-.225.138-.363.137-.137.362-.137h1.5V2q0-.225.15-.363.15-.137.35-.137.225 0 .363.137.137.138.137.363v1.5H23q.225 0 .363.15.137.15.137.35 0 .225-.137.362-.138.138-.363.138h-1.5V6q0 .225-.15.362-.15.138-.35.138-.225 0-.362-.138Q20.5 6.225 20.5 6Z" />
+                                </svg>
+                                Add Reaction
+                            </button>
+                            <button onClick={replyMsg}>
+                                <svg height="24" width="24">
+                                    <path d="M19.9 18.5q-.2 0-.35-.137-.15-.138-.15-.363v-3q0-1.45-1.025-2.475Q17.35 11.5 15.9 11.5H5.5l3.775 3.775q.15.125.15.325t-.175.35q-.15.175-.35.175-.2 0-.35-.175l-4.4-4.375q-.125-.15-.175-.288-.05-.137-.05-.287 0-.15.05-.288.05-.137.175-.287l4.425-4.4q.125-.15.325-.15t.35.175q.175.15.175.35 0 .2-.175.35L5.5 10.5h10.4q1.875 0 3.188 1.312Q20.4 13.125 20.4 15v3q0 .225-.137.363-.138.137-.363.137Z" />
+                                </svg>
+                                Reply to Message
+                            </button>
+                            <button onClick={forwardMsg}>
+                                <svg height="24" width="24">
+                                    <path d="M4.1 18.5q-.225 0-.363-.137Q3.6 18.225 3.6 18v-3q0-1.875 1.313-3.188Q6.225 10.5 8.1 10.5h10.4l-3.775-3.775q-.15-.125-.15-.325t.175-.35q.15-.175.35-.175.2 0 .35.175l4.4 4.375q.125.15.175.287.05.138.05.288 0 .15-.05.287-.05.138-.175.288l-4.425 4.4q-.125.15-.325.15t-.35-.175q-.175-.15-.175-.35 0-.2.175-.35l3.75-3.75H8.1q-1.45 0-2.475 1.025Q4.6 13.55 4.6 15v3q0 .225-.15.363-.15.137-.35.137Z" />
+                                </svg>
+                                Foward Message
+                            </button>
+                            <button onClick={editMsg} id="edit">
+                                <svg height="24" width="24">
+                                    <path d="M5.3 19h1.075l9.9-9.9L15.2 8.025l-9.9 9.9ZM18.425 8.375l-2.5-2.475 1.225-1.225q.275-.3.7-.3.425 0 .725.3l1.05 1.075q.3.275.3.7 0 .425-.275.7ZM5.125 20q-.35 0-.588-.225Q4.3 19.55 4.3 19.2v-1.375q0-.15.062-.287.063-.138.188-.288L15.2 6.6l2.5 2.5L7.05 19.75q-.125.15-.262.2-.138.05-.313.05Zm10.6-11.45-.525-.525L16.275 9.1Z" />
+                                </svg>
+                                Edit Message
+                            </button>
+                            <button className="delete" onClick={deleteMsg} id="delete">
+                                <svg height="24" width="24">
+                                    <path d="M7.625 20q-.7 0-1.162-.462Q6 19.075 6 18.375V6h-.5q-.225 0-.362-.138Q5 5.725 5 5.5q0-.225.138-.363Q5.275 5 5.5 5H9q0-.325.238-.55.237-.225.562-.225h4.4q.325 0 .562.225Q15 4.675 15 5h3.5q.225 0 .363.137.137.138.137.363 0 .225-.137.362Q18.725 6 18.5 6H18v12.375q0 .7-.462 1.163-.463.462-1.163.462ZM7 6v12.375q0 .275.175.45t.45.175h8.75q.275 0 .45-.175t.175-.45V6Zm2.8 10.5q0 .225.15.363.15.137.35.137.225 0 .363-.137.137-.138.137-.363v-8q0-.225-.137-.363Q10.525 8 10.3 8q-.2 0-.35.137-.15.138-.15.363Zm3.4 0q0 .225.138.363.137.137.362.137.2 0 .35-.137.15-.138.15-.363v-8q0-.225-.15-.363Q13.9 8 13.7 8q-.225 0-.362.137-.138.138-.138.363ZM7 6v12.375q0 .275.175.45t.45.175H7V6Z" />
+                                </svg>
+                                Delete Message
+                            </button>
+                        </div>
                     </div>
 
                     {
@@ -319,36 +482,56 @@ function App() {
                 </div>
             </main>
 
-            <div className={isPopUpActive ? 'popup' : 'popup hidden'} id="popup">
+            <div className={isPopUpActive ? 'popup' : 'popup hidden'} id="popupGroup">
                 <section>
-                    <span className="close" onClick={popUpAddFriend}>&times;</span>
+                    <span className="close" onClick={popUpCreateChat}>&times;</span>
 
                     <div className="form">
-                        <div className="friends">
-                            <h3>Add Friends</h3>
+                        <div style={{ width: 60 + '%' }}>
+                            <h3>Create Chat</h3>
                             <p>
-                                <label>Search</label>
-                                <input type="text" placeholder="Enter your Friend Username" onChange={(e) => { setSearchFriend(e.target.value); }} onFocus={formStuff} />
+                                <label>Name</label>
+                                <input type="text" placeholder="Enter a Name" onChange={(e) => { setChatName(e.target.value); }} onFocus={formStuff} />
+                            </p>
+                            <p>
+                                <label>Members</label>
+                                <input type="text" placeholder="Enter an Username" onChange={(e) => { setSearchUsers(e.target.value); }} onFocus={formStuff} />
                             </p>
                             <div className="results">
                                 {
+                                    (chatMembers.length > 0) ? (
+                                        chatMembers.map(m => {
+                                            return (
+                                                <div id={users.find(u => u._id === m)._id} onClick={checkFunc} className="radioChecked">{users.find(u => u._id === m).username}</div>
+                                            );
+                                        })
+                                    ) : (<></>)
+                                }
+                                {
                                     users.filter(u => {
-                                        if (searchFriend === '' || u._id === user._id) {
+                                        if (searchUsers === '' || u._id === user._id) {
                                             return false;
-                                        } else if (u.username.toLowerCase().includes(searchFriend.toLowerCase())) {
+                                        } else if (u.username.toLowerCase().includes(searchUsers.toLowerCase())) {
                                             return u;
                                         };
                                         return false;
                                     })
                                         .map(u => {
                                             return (
-                                                <div id={u._id} onClick={radioFunc} className={(isRadioActive === u._id) ? ('radioChecked') : ('')}>{u.username}</div>
+                                                <div id={u._id} onClick={checkFunc} style={
+                                                    (chatMembers.filter(m => {
+                                                        if (m === u._id) {
+                                                            return true;
+                                                        };
+                                                        return false;
+                                                    }).length === 0) ? ({ display: 'block' }) : ({ display: 'none' })
+                                                }>{u.username}</div>
                                             );
                                         })
                                 }
                             </div>
                             <br />
-                            <button type="submit" onClick={addFriend}>Add</button>
+                            <button type="submit" onClick={createChat}>Create</button>
                         </div>
                     </div>
                 </section>

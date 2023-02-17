@@ -58,14 +58,14 @@ app.post('/api/signin', async (req, res) => {
         const { token } = req.body;
 
         const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
-    
+
         const user = await User.findById(decodedToken.userId);
-            if(!user) return res.sendStatus(401);
+        if (!user) return res.sendStatus(401);
         req.session.user = user;
-    
+
         res.sendStatus(204);
     } catch (e) {
-        if(e.name === 'TokenExpiredError') return res.sendStatus(504);
+        if (e.name === 'TokenExpiredError') return res.sendStatus(504);
         return res.sendStatus(401);
     };
 });
@@ -73,8 +73,8 @@ app.post('/api/signout', async (req, res) => {
     const sessionId = req.session.id;
 
     req.session.destroy(() => {
-      io.to(sessionId).disconnectSockets();
-      res.sendStatus(204);
+        io.to(sessionId).disconnectSockets();
+        res.sendStatus(204);
     });
 });
 
@@ -96,9 +96,9 @@ io.on('connection', socket => {
     socket.on('signin', async email => {
         try {
             const user = await User.findOne({ email }) || await User.create({ username: email.substring(0, email.indexOf('@')), email, });
-    
+
             const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '10min' });
-    
+
             await transporter.sendMail({
                 from: `Chat App <${process.env.EMAIL}>`,
                 to: email,
@@ -180,7 +180,7 @@ io.on('connection', socket => {
                     </div>
                 </div>`
             });
-    
+
             return socket.emit('signedin', true);
         } catch (e) {
             console.log(e);
@@ -200,10 +200,12 @@ io.on('connection', socket => {
     // Load Room Messages
     socket.on('join-room', async roomId => {
         try {
-            socket.emit('room-messages', await Chat.findById(roomId));
+            const chat = await Chat.findById(roomId);
 
-            socket.join(await Chat.findById(roomId)._id);
-        } catch (e) { return };
+            socket.emit('room-messages', chat);
+
+            socket.join(chat._id.toString());
+        } catch (e) { return console.log(e) };
     });
 
     // Save Message
@@ -213,60 +215,83 @@ io.on('connection', socket => {
         chat.messages.push({
             content,
             time,
-            from: id
+            from: id,
+            reactions: []
         });
+        chat.lastmsg = content;
 
         chat.save();
 
-        if (chat.members.length === 2) {
-            const user0 = await User.findById(chat.members[0]);
-            const user1 = await User.findById(chat.members[1]);
-            if (!user0.friends.find(f => f._id.toString() === chat.members[1]._id.toString())) {
-                user0.friends.push({
-                    _id: user1._id,
-                    username: user1.username,
-                    picture: user1.picture,
-                    chatId: chat._id,
-                    lastmsg: content
-                });
-                await user0.save();
-            } else if (!user1.friends.find(f => f._id.toString() === chat.members[0]._id.toString())) {
-                user1.friends.push({
-                    _id: user0._id,
-                    username: user0.username,
-                    picture: user0.picture,
-                    chatId: chat._id,
-                    lastmsg: content
-                });
-                await user1.save();
-            };
+        io.to(chat._id.toString()).emit('room-messages', chat);
 
-            socket.broadcast.emit('updateuser');
+        var opCompleted = 0;
+        function op() {
+            ++opCompleted;
+            if (opCompleted === chat.members.length) {
+                return io.emit('updateuser');
+            };
         };
 
-        io.to(chat._id).emit('room-messages', chat);
+        for (let i = 0; i < chat.members.length; i++) {
+            op();
+
+            const member = chat.members[i];
+            
+            const user = await User.findById(member._id);
+
+            if (!user.chats.find(c => c._id.toString() === chat._id.toString())) {
+                user.chats.push({
+                    _id: chat._id,
+                    name: chat.name,
+                    lastmsg: chat.lastmsg
+                });
+                await user.save();
+            } else if (user.chats.find(c => c._id.toString() === chat._id.toString())) {
+                const chatIx = user.chats.findIndex(c => c._id.toString() === chat._id.toString());
+
+                user.chats[chatIx].lastmsg = chat.lastmsg;
+                user.chats.splice(chatIx, 1, user.chats[chatIx]);
+
+                await user.save();
+            };
+        };
     });
 
     // Update Last Message
     socket.on('last-message', async (id, chatId, lastmsg) => {
+        console.log(1);
+
         const user = await User.findById(id);
         if (user === null) return;
 
-        const friendIndex = user.friends.findIndex(f => f.chatId.toString() === chatId);
-        const friend = await User.findById(user.friends[friendIndex]._id);
-        const userIndex = friend.friends.findIndex(f => f.chatId.toString() === chatId);
+        const chatIx = user.chats.findIndex(c => c._id.toString() === chatId);
+        const chat = await Chat.findById(user.chats[chatIx]._id);
+        if (chat === null) return;
+        // const userIx = chat.chats.findIndex(c => c._id.toString() === chatId);
+        const users = await User.find();
 
-        user.friends[friendIndex].lastmsg = lastmsg;
-        user.friends.splice(friendIndex, 1, user.friends[friendIndex]);
+        user.chats[chatIx].lastmsg = lastmsg;
+        user.chats.splice(chatIx, 1, user.chats[chatIx]);
 
         user.save();
 
-        try {
-            friend.friends[userIndex].lastmsg = lastmsg;
-            friend.friends.splice(userIndex, 1, friend.friends[userIndex]);
-    
-            friend.save();
-        } catch (e) { return };
+        console.log(users.filter(u => {
+            for (let i = 0; i < chat.members.length; i++) {
+                const members = chat.members[i];
+
+                if (u._id === members._id) {
+                    return true;
+                };
+                return false;
+            };
+        }));
+
+        // try {
+        //     chat.chats[userIx].lastmsg = lastmsg;
+        //     chat.chats.splice(userIx, 1, chat.chats[userIx]);
+
+        //     chat.save();
+        // } catch (e) { return };
     });
 
     // Update User Profile
@@ -285,32 +310,81 @@ io.on('connection', socket => {
     });
 
     // Create Chat
-    socket.on('add-friend', async (id, friendId) => {
+    socket.on('create-chat', async (id, chatName, chatMembers) => {
         const user = await User.findById(id);
         if (user === null) return;
 
-        const friend = await User.findById(friendId);
-        if (friend === null) return;
 
         const chat = await Chat.create({
             members: [
                 {
                     _id: user._id
-                }, {
-                    _id: friend._id
                 }
             ]
         });
 
-        user.friends.push({
-            _id: friend._id,
-            username: friend.username,
-            picture: friend.picture,
-            chatId: chat._id
-        });
+        var cName = [];
+        for (let i = 0; i < chatMembers.length; i++) {
+            const m = chatMembers[i];
+
+            const member = await User.findById(m);
+            if (member === null) return;
+
+            cName.push(member.username);
+
+            chat.members.push({
+                _id: member._id
+            });
+        };
+
+        chat.name = (chatName !== '') ? (chatName) : (cName.join(', '));
+
+        user.chats.push({ _id: chat._id, name: chat.name, lastmsg: '' });
         await user.save();
 
+        await chat.save();
+
         socket.emit('updateuser');
+    });
+
+    // Edit Message
+    socket.on('edit-msg', async (roomId, id, type, content, userId) => {
+        console.log(roomId, id, type, content);
+
+        if (roomId && id) {
+            var chat = await Chat.findById(roomId);
+            if (!chat) return;
+            const user = await User.findById(userId);
+            if (!user) return;
+
+            if (type === 'react') {
+                chat.messages[id].reactions = chat.messages[id].reactions || [];
+
+                chat.messages[id].reactions.push(content);
+            } else if (type === 'reply') {
+
+            } else if (type === 'forward') {
+
+            } else if (type === 'edit') {
+                if (chat.messages[id].from !== user._id.toString()) return;
+
+                if (content.length === 0) {
+                    chat.messages.splice(id, 1)
+                } else {
+                    chat.messages[id].content = content;
+                    chat.messages[id].isEdited = true;
+                    chat.messages.splice(id, 1, chat.messages[id]);
+                };
+            } else if (type === 'delete') {
+                if (chat.messages[id].from !== user._id.toString()) return;
+
+                chat.messages.splice(id, 1);
+            };
+
+            await chat.save();
+
+            io.to(chat._id.toString()).emit('room-messages', chat);
+        };
     });
 });
 

@@ -128,7 +128,6 @@ function App() {
       <footer>
         <section>
           <div className="links">
-            <a href="/twitter">Twitter</a>
             <a href="/support">Help</a>
             <a href="/contact">Contact Us</a>
           </div>

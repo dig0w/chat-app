@@ -24,21 +24,25 @@ function App() {
 
         socket.on('issignin', response => {
             if (response || !new URLSearchParams(window.location.search).has('token')) return navigate('/chat');
+
+            signIn();
         });
-
-        Axios.post('http://localhost:5000/api/signin', { token: new URLSearchParams(window.location.search).get('token') })
-            .then(() => navigate('/chat'))
-            .catch(e => {
-                if (e.response.data === 'Gateway Timeout') return setIsError(true);
-
-                console.log(e.response.data);
-                return navigate('/')
-            });
 
         return () => {
             socket.disconnect();
         };
     }, []);
+
+    function signIn() {
+        Axios.post('http://localhost:5000/api/signin', { token: new URLSearchParams(window.location.search).get('token') })
+        .then(() => navigate('/chat'))
+        .catch(e => {
+            if (e.response.data === 'Gateway Timeout') return setIsError(true);
+
+            console.log(e.response.data);
+            return navigate('/')
+        });
+    };
 
     return (
         <div>
@@ -72,7 +76,6 @@ function App() {
             <footer>
                 <section>
                     <div className="links">
-                        <a href="/twitter">Twitter</a>
                         <a href="/support">Help</a>
                         <a href="/contact">Contact Us</a>
                     </div>

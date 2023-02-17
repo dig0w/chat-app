@@ -165,6 +165,7 @@ header nav button:hover {
 }
 .mainChat .menu .perinfo button:hover svg {
     fill: #5353ed;
+    transform: scale(1.1);
 }
 .mainChat .menu .options {
     display: flex;
@@ -185,6 +186,7 @@ header nav button:hover {
 }
 .mainChat .menu .options button:hover svg {
     fill: #5353ed;
+    transform: scale(1.1);
 }
 .mainChat .menu .chats {
     display: flex;
@@ -242,6 +244,8 @@ header nav button:hover {
     width: 100%;
     display: grid;
     justify-items: start;
+
+    position: relative;
 }
 .mainChat .chat .chat-msg .msg span {
     background: transparent;
@@ -253,6 +257,46 @@ header nav button:hover {
     max-width: 447.24px;
     border-radius: .4rem;
     background-color: #e5e5f0;
+    position: relative;
+}
+.mainChat .chat .chat-msg .msg .text:focus {
+    outline: none;
+    border: none;
+}
+.mainChat .chat .chat-msg .msg:hover .text button, .mainChat .chat .chat-msg .msg .text button:focus {
+    visibility: visible;
+    opacity: 1;
+    width: 24px;
+    height: 24px;
+    outline: none;
+    border: none;
+}
+.mainChat .chat .chat-msg .msg .text button {
+    visibility: hidden;
+    opacity: 0;
+    height: 0 !important;
+    width: 0 !important;
+    position: absolute;
+    top: .1rem;
+    right: .2rem;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+}
+.mainChat .chat .chat-msg .msg-me .text button {
+    left: -1.3rem;
+    right: unset;
+}
+.mainChat .chat .chat-msg .msg .text button svg {
+    fill: #9e9e9e;
+    background: transparent;
+}
+.mainChat .chat .chat-msg .msg .text button:focus svg, .mainChat .chat .chat-msg .msg .text button:hover svg {
+    fill: #5353ed;
+    transform: scale(1.2);
+}
+.mainChat .chat .chat-msg .msg .text button svg path {
+    pointer-events: none;
 }
 .mainChat .chat .chat-msg .msg .time {
     margin: .25rem 0 0;
@@ -262,7 +306,6 @@ header nav button:hover {
     white-space: nowrap;
 }
 .mainChat .chat .chat-msg .msg-me {
-    align-self: end;
     justify-items: end;
 }
 .mainChat .chat .chat-msg .msg-me .text {
@@ -290,6 +333,46 @@ header nav button:hover {
     box-shadow: 0 10px 10px -10px #fafafc inset;
     background: transparent;
     pointer-events: none;
+}
+.mainChat .chat .chat-msg .contextMenu {
+    padding: .25rem .5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    border-radius: .4rem;
+    background-color: #e5e5f0;
+    position: absolute;
+    box-shadow: 0 1px 2px 0 #808080;
+    transition: opacity .1s ease-in-out;
+}
+.mainChat .chat .chat-msg .contextMenu button {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    margin: .25rem 0 .25rem;
+    padding: .25rem .5rem;
+    width: 100%;
+    border: none;
+    border-radius: .4rem;
+    background: transparent;
+    font-size: 13px;
+    cursor: pointer;
+}
+.mainChat .chat .chat-msg .contextMenu button:hover {
+    background-color: rgba(128, 128, 128, .15);
+}
+.mainChat .chat .chat-msg .contextMenu button svg {
+    background: transparent;
+}
+.mainChat .chat .chat-msg .contextMenu .delete, .mainChat .chat .chat-msg .contextMenu .delete svg {
+    color: #ed5353;
+    fill: #ed5353;
+}
+.mainChat .chat .chat-msg .contextMenu .delete:hover {
+    background-color: rgba(237, 83, 83, .15);
+}
+.mainChat .chat .chat-msg .contextMenu button svg {
+    margin: 0 .3rem 0 0;
 }
 .mainChat .chat .chat-msg .shadowBot {
     bottom: 0;
