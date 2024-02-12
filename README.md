@@ -139,7 +139,7 @@ Distributed under the MIT License. See `LICENSE.txt` for more information.
 <!-- CONTACT -->
 ## Contact
 
-Your Name - [@dig0w0224](https://twitter.com/dig0w0224) - dig0w.yt@gmail.com
+[@dig0w0224](https://twitter.com/dig0w0224) - dig0w.yt@gmail.com
 
 Project Link: [https://github.com/dig0w/chat-app](https://github.com/dig0w/chat-app)
 
