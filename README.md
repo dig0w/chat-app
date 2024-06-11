@@ -106,7 +106,7 @@ This application uses:
 ## Roadmap
 
 - [ ] Edit profile
-- [ ] Edit cats
+- [ ] Edit chats
 - [ ] Edit messages
     - [ ] Forward
     - [ ] Reply
