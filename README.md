@@ -66,9 +66,7 @@ To install the client packages:
 
 3. Inside .env file
   ```env
-  DB_USER = MongoDB Username
-  DB_PASS = MongoDB Password
-  DB_CONNECT~= MongoDB Link (e.g.: mongodb+srv://<username>:<password>@<name>.mongodb.net/)
+  DB_CONNECT = MongoDB Link (e.g.: mongodb+srv://<username>:<password>@<name>.mongodb.net/)
   ```
 
 4. For the sign in verification you need an email and an application key
